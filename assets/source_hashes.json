@@ -1,0 +1,8 @@
+{
+  "modules\\hand_landmark\\handedness.txt": "3b82f0246870fec456c8632d455a4e1d5648d2836a7a513a271781144f525916",
+  "modules\\hand_landmark\\hand_landmark_full.tflite": "11c272b891e1a99ab034208e23937a8008388cf11ed2a9d776ed3d01d0ba00e3",
+  "modules\\hand_landmark\\hand_landmark_lite.tflite": "048edd3645c9bf7397d19a9f6e3a42957d6e414c9bea6598030a2e9b624156e6",
+  "modules\\hand_landmark\\hand_landmark_tracking_cpu.binarypb": "942ad4e6b3ecd1903fd2743ad2255a341854de975ef9c90418a4c7b64f0b4425",
+  "modules\\palm_detection\\palm_detection_full.tflite": "1b14e9422c6ad006cde6581a46c8b90dd573c07ab7f3934b5589e7cea3f89a54",
+  "modules\\palm_detection\\palm_detection_lite.tflite": "e9a4aaddf90dda56a87235303cf00e4c2d3fb28725f68fd88772997dac905c18"
+}

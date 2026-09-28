@@ -1,0 +1,575 @@
+node {
+  calculator: "ImagePropertiesCalculator"
+  input_stream: "IMAGE_CPU:image"
+  output_stream: "SIZE:image_size"
+}
+node {
+  calculator: "PreviousLoopbackCalculator"
+  input_stream: "MAIN:image"
+  input_stream: "LOOP:hand_rects_from_landmarks"
+  output_stream: "PREV_LOOP:prev_hand_rects_from_landmarks"
+  input_stream_info {
+    tag_index: "LOOP"
+    back_edge: true
+  }
+}
+node {
+  calculator: "GateCalculator"
+  input_stream: "prev_hand_rects_from_landmarks"
+  output_stream: "gated_prev_hand_rects_from_landmarks"
+  input_side_packet: "ALLOW:use_prev_landmarks"
+  options {
+    [mediapipe.GateCalculatorOptions.ext] {
+      allow: true
+    }
+  }
+}
+node {
+  calculator: "NormalizedRectVectorHasMinSizeCalculator"
+  input_stream: "ITERABLE:gated_prev_hand_rects_from_landmarks"
+  output_stream: "prev_has_enough_hands"
+  input_side_packet: "num_hands"
+}
+node {
+  calculator: "GateCalculator"
+  input_stream: "image"
+  input_stream: "DISALLOW:prev_has_enough_hands"
+  output_stream: "palm_detection_image"
+  options {
+    [mediapipe.GateCalculatorOptions.ext] {
+      empty_packets_as_allow: true
+    }
+  }
+}
+node {
+  calculator: "ImagePropertiesCalculator"
+  input_stream: "IMAGE:palm_detection_image"
+  output_stream: "SIZE:palm_detection_image_size"
+}
+node {
+  name: "palmdetectioncpu__ImageToTensorCalculator"
+  calculator: "ImageToTensorCalculator"
+  input_stream: "IMAGE:palm_detection_image"
+  output_stream: "TENSORS:palmdetectioncpu__input_tensor"
+  output_stream: "LETTERBOX_PADDING:palmdetectioncpu__letterbox_padding"
+  options {
+    [mediapipe.ImageToTensorCalculatorOptions.ext] {
+      output_tensor_width: 192
+      output_tensor_height: 192
+      keep_aspect_ratio: true
+      output_tensor_float_range {
+        min: 0.0
+        max: 1.0
+      }
+      border_mode: BORDER_ZERO
+    }
+  }
+}
+node {
+  name: "palmdetectioncpu__TfLiteCustomOpResolverCalculator"
+  calculator: "TfLiteCustomOpResolverCalculator"
+  output_side_packet: "OP_RESOLVER:palmdetectioncpu__opresolver"
+}
+node {
+  name: "palmdetectioncpu__SsdAnchorsCalculator"
+  calculator: "SsdAnchorsCalculator"
+  output_side_packet: "palmdetectioncpu__anchors"
+  options {
+    [mediapipe.SsdAnchorsCalculatorOptions.ext] {
+      input_size_width: 192
+      input_size_height: 192
+      min_scale: 0.1484375
+      max_scale: 0.75
+      anchor_offset_x: 0.5
+      anchor_offset_y: 0.5
+      num_layers: 4
+      strides: 8
+      strides: 16
+      strides: 16
+      strides: 16
+      aspect_ratios: 1.0
+      fixed_anchor_size: true
+    }
+  }
+}
+node {
+  name: "palmdetectioncpu__palmdetectionmodelloader__switchcontainer__SwitchDemuxCalculator"
+  calculator: "SwitchDemuxCalculator"
+  input_side_packet: "SELECT:model_complexity"
+  options {
+    [mediapipe.SwitchContainerOptions.ext] {
+      select: 1
+    }
+  }
+}
+node {
+  name: "palmdetectioncpu__palmdetectionmodelloader__switchcontainer__ConstantSidePacketCalculator_1"
+  calculator: "ConstantSidePacketCalculator"
+  output_side_packet: "PACKET:palmdetectioncpu__palmdetectionmodelloader__switchcontainer__c0__palmdetectioncpu__palmdetectionmodelloader__model_path"
+  options {
+    [mediapipe.ConstantSidePacketCalculatorOptions.ext] {
+      packet {
+        string_value: "mediapipe/modules/palm_detection/palm_detection_lite.tflite"
+      }
+    }
+  }
+}
+node {
+  name: "palmdetectioncpu__palmdetectionmodelloader__switchcontainer__ConstantSidePacketCalculator_2"
+  calculator: "ConstantSidePacketCalculator"
+  output_side_packet: "PACKET:palmdetectioncpu__palmdetectionmodelloader__switchcontainer__c1__palmdetectioncpu__palmdetectionmodelloader__model_path"
+  options {
+    [mediapipe.ConstantSidePacketCalculatorOptions.ext] {
+      packet {
+        string_value: "mediapipe/modules/palm_detection/palm_detection_full.tflite"
+      }
+    }
+  }
+}
+node {
+  name: "palmdetectioncpu__palmdetectionmodelloader__switchcontainer__SwitchMuxCalculator"
+  calculator: "SwitchMuxCalculator"
+  input_side_packet: "SELECT:model_complexity"
+  input_side_packet: "C0__PACKET:palmdetectioncpu__palmdetectionmodelloader__switchcontainer__c0__palmdetectioncpu__palmdetectionmodelloader__model_path"
+  input_side_packet: "C1__PACKET:palmdetectioncpu__palmdetectionmodelloader__switchcontainer__c1__palmdetectioncpu__palmdetectionmodelloader__model_path"
+  output_side_packet: "PACKET:palmdetectioncpu__palmdetectionmodelloader__model_path"
+  options {
+    [mediapipe.SwitchContainerOptions.ext] {
+      select: 1
+    }
+  }
+}
+node {
+  name: "palmdetectioncpu__palmdetectionmodelloader__LocalFileContentsCalculator"
+  calculator: "LocalFileContentsCalculator"
+  input_side_packet: "FILE_PATH:palmdetectioncpu__palmdetectionmodelloader__model_path"
+  output_side_packet: "CONTENTS:palmdetectioncpu__palmdetectionmodelloader__model_blob"
+  options {
+    [mediapipe.LocalFileContentsCalculatorOptions.ext] {
+      text_mode: false
+    }
+  }
+}
+node {
+  name: "palmdetectioncpu__palmdetectionmodelloader__TfLiteModelCalculator"
+  calculator: "TfLiteModelCalculator"
+  input_side_packet: "MODEL_BLOB:palmdetectioncpu__palmdetectionmodelloader__model_blob"
+  output_side_packet: "MODEL:palmdetectioncpu__model"
+}
+node {
+  name: "palmdetectioncpu__inferencecalculator__palmdetectioncpu__InferenceCalculator"
+  calculator: "InferenceCalculatorCpu"
+  input_stream: "TENSORS:palmdetectioncpu__input_tensor"
+  output_stream: "TENSORS:palmdetectioncpu__detection_tensors"
+  input_side_packet: "OP_RESOLVER:palmdetectioncpu__opresolver"
+  input_side_packet: "MODEL:palmdetectioncpu__model"
+  options {
+    [mediapipe.InferenceCalculatorOptions.ext] {
+      delegate {
+        xnnpack {
+          num_threads: 8
+        }
+      }
+    }
+  }
+}
+node {
+  name: "palmdetectioncpu__TensorsToDetectionsCalculator"
+  calculator: "TensorsToDetectionsCalculator"
+  input_stream: "TENSORS:palmdetectioncpu__detection_tensors"
+  output_stream: "DETECTIONS:palmdetectioncpu__unfiltered_detections"
+  input_side_packet: "ANCHORS:palmdetectioncpu__anchors"
+  options {
+    [mediapipe.TensorsToDetectionsCalculatorOptions.ext] {
+      num_classes: 1
+      num_boxes: 2016
+      num_coords: 18
+      x_scale: 192.0
+      y_scale: 192.0
+      w_scale: 192.0
+      h_scale: 192.0
+      keypoint_coord_offset: 4
+      num_keypoints: 7
+      num_values_per_keypoint: 2
+      box_coord_offset: 0
+      reverse_output_order: true
+      sigmoid_score: true
+      score_clipping_thresh: 100.0
+      min_score_thresh: 0.5
+    }
+  }
+}
+node {
+  name: "palmdetectioncpu__NonMaxSuppressionCalculator"
+  calculator: "NonMaxSuppressionCalculator"
+  input_stream: "palmdetectioncpu__unfiltered_detections"
+  output_stream: "palmdetectioncpu__filtered_detections"
+  options {
+    [mediapipe.NonMaxSuppressionCalculatorOptions.ext] {
+      min_suppression_threshold: 0.3
+      overlap_type: INTERSECTION_OVER_UNION
+      algorithm: WEIGHTED
+    }
+  }
+}
+node {
+  name: "palmdetectioncpu__DetectionLetterboxRemovalCalculator"
+  calculator: "DetectionLetterboxRemovalCalculator"
+  input_stream: "DETECTIONS:palmdetectioncpu__filtered_detections"
+  input_stream: "LETTERBOX_PADDING:palmdetectioncpu__letterbox_padding"
+  output_stream: "DETECTIONS:all_palm_detections"
+}
+node {
+  calculator: "ClipDetectionVectorSizeCalculator"
+  input_stream: "all_palm_detections"
+  output_stream: "palm_detections"
+  input_side_packet: "num_hands"
+}
+node {
+  calculator: "BeginLoopDetectionCalculator"
+  input_stream: "ITERABLE:palm_detections"
+  input_stream: "CLONE:palm_detection_image_size"
+  output_stream: "ITEM:palm_detection"
+  output_stream: "CLONE:image_size_for_palms"
+  output_stream: "BATCH_END:palm_detections_timestamp"
+}
+node {
+  name: "palmdetectiondetectiontoroi__DetectionsToRectsCalculator"
+  calculator: "DetectionsToRectsCalculator"
+  input_stream: "DETECTION:palm_detection"
+  input_stream: "IMAGE_SIZE:image_size_for_palms"
+  output_stream: "NORM_RECT:palmdetectiondetectiontoroi__raw_roi"
+  options {
+    [mediapipe.DetectionsToRectsCalculatorOptions.ext] {
+      rotation_vector_start_keypoint_index: 0
+      rotation_vector_end_keypoint_index: 2
+      rotation_vector_target_angle_degrees: 90.0
+    }
+  }
+}
+node {
+  name: "palmdetectiondetectiontoroi__RectTransformationCalculator"
+  calculator: "RectTransformationCalculator"
+  input_stream: "NORM_RECT:palmdetectiondetectiontoroi__raw_roi"
+  input_stream: "IMAGE_SIZE:image_size_for_palms"
+  output_stream: "hand_rect_from_palm_detection"
+  options {
+    [mediapipe.RectTransformationCalculatorOptions.ext] {
+      scale_x: 2.6
+      scale_y: 2.6
+      shift_y: -0.5
+      square_long: true
+    }
+  }
+}
+node {
+  calculator: "EndLoopNormalizedRectCalculator"
+  input_stream: "ITEM:hand_rect_from_palm_detection"
+  input_stream: "BATCH_END:palm_detections_timestamp"
+  output_stream: "ITERABLE:hand_rects_from_palm_detections"
+}
+node {
+  calculator: "AssociationNormRectCalculator"
+  input_stream: "hand_rects_from_palm_detections"
+  input_stream: "gated_prev_hand_rects_from_landmarks"
+  output_stream: "hand_rects"
+  options {
+    [mediapipe.AssociationCalculatorOptions.ext] {
+      min_similarity_threshold: 0.5
+    }
+  }
+}
+node {
+  calculator: "BeginLoopNormalizedRectCalculator"
+  input_stream: "ITERABLE:hand_rects"
+  input_stream: "CLONE:0:image"
+  input_stream: "CLONE:1:image_size"
+  output_stream: "ITEM:single_hand_rect"
+  output_stream: "CLONE:0:image_for_landmarks"
+  output_stream: "CLONE:1:image_size_for_landmarks"
+  output_stream: "BATCH_END:hand_rects_timestamp"
+}
+node {
+  name: "handlandmarkcpu__ImageToTensorCalculator"
+  calculator: "ImageToTensorCalculator"
+  input_stream: "IMAGE:image_for_landmarks"
+  input_stream: "NORM_RECT:single_hand_rect"
+  output_stream: "TENSORS:handlandmarkcpu__input_tensor"
+  output_stream: "LETTERBOX_PADDING:handlandmarkcpu__letterbox_padding"
+  options {
+    [mediapipe.ImageToTensorCalculatorOptions.ext] {
+      output_tensor_width: 224
+      output_tensor_height: 224
+      keep_aspect_ratio: true
+      output_tensor_float_range {
+        min: 0.0
+        max: 1.0
+      }
+    }
+  }
+}
+node {
+  name: "handlandmarkcpu__handlandmarkmodelloader__switchcontainer__SwitchDemuxCalculator"
+  calculator: "SwitchDemuxCalculator"
+  input_side_packet: "SELECT:model_complexity"
+  options {
+    [mediapipe.SwitchContainerOptions.ext] {
+      select: 1
+    }
+  }
+}
+node {
+  name: "handlandmarkcpu__handlandmarkmodelloader__switchcontainer__ConstantSidePacketCalculator_1"
+  calculator: "ConstantSidePacketCalculator"
+  output_side_packet: "PACKET:handlandmarkcpu__handlandmarkmodelloader__switchcontainer__c0__handlandmarkcpu__handlandmarkmodelloader__model_path"
+  options {
+    [mediapipe.ConstantSidePacketCalculatorOptions.ext] {
+      packet {
+        string_value: "mediapipe/modules/hand_landmark/hand_landmark_lite.tflite"
+      }
+    }
+  }
+}
+node {
+  name: "handlandmarkcpu__handlandmarkmodelloader__switchcontainer__ConstantSidePacketCalculator_2"
+  calculator: "ConstantSidePacketCalculator"
+  output_side_packet: "PACKET:handlandmarkcpu__handlandmarkmodelloader__switchcontainer__c1__handlandmarkcpu__handlandmarkmodelloader__model_path"
+  options {
+    [mediapipe.ConstantSidePacketCalculatorOptions.ext] {
+      packet {
+        string_value: "mediapipe/modules/hand_landmark/hand_landmark_full.tflite"
+      }
+    }
+  }
+}
+node {
+  name: "handlandmarkcpu__handlandmarkmodelloader__switchcontainer__SwitchMuxCalculator"
+  calculator: "SwitchMuxCalculator"
+  input_side_packet: "SELECT:model_complexity"
+  input_side_packet: "C0__PACKET:handlandmarkcpu__handlandmarkmodelloader__switchcontainer__c0__handlandmarkcpu__handlandmarkmodelloader__model_path"
+  input_side_packet: "C1__PACKET:handlandmarkcpu__handlandmarkmodelloader__switchcontainer__c1__handlandmarkcpu__handlandmarkmodelloader__model_path"
+  output_side_packet: "PACKET:handlandmarkcpu__handlandmarkmodelloader__model_path"
+  options {
+    [mediapipe.SwitchContainerOptions.ext] {
+      select: 1
+    }
+  }
+}
+node {
+  name: "handlandmarkcpu__handlandmarkmodelloader__LocalFileContentsCalculator"
+  calculator: "LocalFileContentsCalculator"
+  input_side_packet: "FILE_PATH:handlandmarkcpu__handlandmarkmodelloader__model_path"
+  output_side_packet: "CONTENTS:handlandmarkcpu__handlandmarkmodelloader__model_blob"
+  options {
+    [mediapipe.LocalFileContentsCalculatorOptions.ext] {
+      text_mode: false
+    }
+  }
+}
+node {
+  name: "handlandmarkcpu__handlandmarkmodelloader__TfLiteModelCalculator"
+  calculator: "TfLiteModelCalculator"
+  input_side_packet: "MODEL_BLOB:handlandmarkcpu__handlandmarkmodelloader__model_blob"
+  output_side_packet: "MODEL:handlandmarkcpu__model"
+}
+node {
+  name: "handlandmarkcpu__inferencecalculator__handlandmarkcpu__InferenceCalculator"
+  calculator: "InferenceCalculatorCpu"
+  input_stream: "TENSORS:handlandmarkcpu__input_tensor"
+  output_stream: "TENSORS:handlandmarkcpu__output_tensors"
+  input_side_packet: "MODEL:handlandmarkcpu__model"
+  options {
+    [mediapipe.InferenceCalculatorOptions.ext] {
+      delegate {
+        xnnpack {
+          num_threads: 8
+        }
+      }
+    }
+  }
+}
+node {
+  name: "handlandmarkcpu__SplitTensorVectorCalculator"
+  calculator: "SplitTensorVectorCalculator"
+  input_stream: "handlandmarkcpu__output_tensors"
+  output_stream: "handlandmarkcpu__landmark_tensors"
+  output_stream: "handlandmarkcpu__hand_flag_tensor"
+  output_stream: "handlandmarkcpu__handedness_tensor"
+  output_stream: "handlandmarkcpu__world_landmark_tensor"
+  options {
+    [mediapipe.SplitVectorCalculatorOptions.ext] {
+      ranges {
+        begin: 0
+        end: 1
+      }
+      ranges {
+        begin: 1
+        end: 2
+      }
+      ranges {
+        begin: 2
+        end: 3
+      }
+      ranges {
+        begin: 3
+        end: 4
+      }
+    }
+  }
+}
+node {
+  name: "handlandmarkcpu__TensorsToFloatsCalculator"
+  calculator: "TensorsToFloatsCalculator"
+  input_stream: "TENSORS:handlandmarkcpu__hand_flag_tensor"
+  output_stream: "FLOAT:handlandmarkcpu__hand_presence_score"
+}
+node {
+  name: "handlandmarkcpu__ThresholdingCalculator"
+  calculator: "ThresholdingCalculator"
+  input_stream: "FLOAT:handlandmarkcpu__hand_presence_score"
+  output_stream: "FLAG:handlandmarkcpu__hand_presence"
+  options {
+    [mediapipe.ThresholdingCalculatorOptions.ext] {
+      threshold: 0.5
+    }
+  }
+}
+node {
+  name: "handlandmarkcpu__GateCalculator_1"
+  calculator: "GateCalculator"
+  input_stream: "handlandmarkcpu__handedness_tensor"
+  input_stream: "ALLOW:handlandmarkcpu__hand_presence"
+  output_stream: "handlandmarkcpu__ensured_handedness_tensor"
+}
+node {
+  name: "handlandmarkcpu__TensorsToClassificationCalculator"
+  calculator: "TensorsToClassificationCalculator"
+  input_stream: "TENSORS:handlandmarkcpu__ensured_handedness_tensor"
+  output_stream: "CLASSIFICATIONS:single_handedness"
+  options {
+    [mediapipe.TensorsToClassificationCalculatorOptions.ext] {
+      top_k: 1
+      label_map_path: "mediapipe/modules/hand_landmark/handedness.txt"
+      binary_classification: true
+    }
+  }
+}
+node {
+  calculator: "EndLoopClassificationListCalculator"
+  input_stream: "ITEM:single_handedness"
+  input_stream: "BATCH_END:hand_rects_timestamp"
+  output_stream: "ITERABLE:multi_handedness"
+}
+node {
+  name: "handlandmarkcpu__GateCalculator_2"
+  calculator: "GateCalculator"
+  input_stream: "handlandmarkcpu__landmark_tensors"
+  input_stream: "ALLOW:handlandmarkcpu__hand_presence"
+  output_stream: "handlandmarkcpu__ensured_landmark_tensors"
+}
+node {
+  name: "handlandmarkcpu__TensorsToLandmarksCalculator_1"
+  calculator: "TensorsToLandmarksCalculator"
+  input_stream: "TENSORS:handlandmarkcpu__ensured_landmark_tensors"
+  output_stream: "NORM_LANDMARKS:handlandmarkcpu__landmarks"
+  options {
+    [mediapipe.TensorsToLandmarksCalculatorOptions.ext] {
+      num_landmarks: 21
+      input_image_width: 224
+      input_image_height: 224
+      normalize_z: 0.4
+    }
+  }
+}
+node {
+  name: "handlandmarkcpu__LandmarkLetterboxRemovalCalculator"
+  calculator: "LandmarkLetterboxRemovalCalculator"
+  input_stream: "LANDMARKS:handlandmarkcpu__landmarks"
+  input_stream: "LETTERBOX_PADDING:handlandmarkcpu__letterbox_padding"
+  output_stream: "LANDMARKS:handlandmarkcpu__scaled_landmarks"
+}
+node {
+  name: "handlandmarkcpu__LandmarkProjectionCalculator"
+  calculator: "LandmarkProjectionCalculator"
+  input_stream: "NORM_LANDMARKS:handlandmarkcpu__scaled_landmarks"
+  input_stream: "NORM_RECT:single_hand_rect"
+  output_stream: "NORM_LANDMARKS:single_hand_landmarks"
+}
+node {
+  calculator: "EndLoopNormalizedLandmarkListVectorCalculator"
+  input_stream: "ITEM:single_hand_landmarks"
+  input_stream: "BATCH_END:hand_rects_timestamp"
+  output_stream: "ITERABLE:multi_hand_landmarks"
+}
+node {
+  name: "handlandmarkcpu__GateCalculator_3"
+  calculator: "GateCalculator"
+  input_stream: "handlandmarkcpu__world_landmark_tensor"
+  input_stream: "ALLOW:handlandmarkcpu__hand_presence"
+  output_stream: "handlandmarkcpu__ensured_world_landmark_tensor"
+}
+node {
+  name: "handlandmarkcpu__TensorsToLandmarksCalculator_2"
+  calculator: "TensorsToLandmarksCalculator"
+  input_stream: "TENSORS:handlandmarkcpu__ensured_world_landmark_tensor"
+  output_stream: "LANDMARKS:handlandmarkcpu__unprojected_world_landmarks"
+  options {
+    [mediapipe.TensorsToLandmarksCalculatorOptions.ext] {
+      num_landmarks: 21
+    }
+  }
+}
+node {
+  name: "handlandmarkcpu__WorldLandmarkProjectionCalculator"
+  calculator: "WorldLandmarkProjectionCalculator"
+  input_stream: "LANDMARKS:handlandmarkcpu__unprojected_world_landmarks"
+  input_stream: "NORM_RECT:single_hand_rect"
+  output_stream: "LANDMARKS:single_hand_world_landmarks"
+}
+node {
+  calculator: "EndLoopLandmarkListVectorCalculator"
+  input_stream: "ITEM:single_hand_world_landmarks"
+  input_stream: "BATCH_END:hand_rects_timestamp"
+  output_stream: "ITERABLE:multi_hand_world_landmarks"
+}
+node {
+  name: "handlandmarklandmarkstoroi__HandLandmarksToRectCalculator"
+  calculator: "HandLandmarksToRectCalculator"
+  input_stream: "NORM_LANDMARKS:single_hand_landmarks"
+  input_stream: "IMAGE_SIZE:image_size_for_landmarks"
+  output_stream: "NORM_RECT:handlandmarklandmarkstoroi__hand_rect_from_landmarks"
+}
+node {
+  name: "handlandmarklandmarkstoroi__RectTransformationCalculator"
+  calculator: "RectTransformationCalculator"
+  input_stream: "NORM_RECT:handlandmarklandmarkstoroi__hand_rect_from_landmarks"
+  input_stream: "IMAGE_SIZE:image_size_for_landmarks"
+  output_stream: "single_hand_rect_from_landmarks"
+  options {
+    [mediapipe.RectTransformationCalculatorOptions.ext] {
+      scale_x: 2.0
+      scale_y: 2.0
+      shift_y: -0.1
+      square_long: true
+    }
+  }
+}
+node {
+  calculator: "EndLoopNormalizedRectCalculator"
+  input_stream: "ITEM:single_hand_rect_from_landmarks"
+  input_stream: "BATCH_END:hand_rects_timestamp"
+  output_stream: "ITERABLE:hand_rects_from_landmarks"
+}
+input_stream: "IMAGE:image"
+executor {
+}
+output_stream: "LANDMARKS:multi_hand_landmarks"
+output_stream: "WORLD_LANDMARKS:multi_hand_world_landmarks"
+output_stream: "HANDEDNESS:multi_handedness"
+output_stream: "PALM_DETECTIONS:palm_detections"
+output_stream: "HAND_ROIS_FROM_LANDMARKS:hand_rects_from_landmarks"
+output_stream: "HAND_ROIS_FROM_PALM_DETECTIONS:hand_rects_from_palm_detections"
+input_side_packet: "NUM_HANDS:num_hands"
+input_side_packet: "MODEL_COMPLEXITY:model_complexity"
+input_side_packet: "USE_PREV_LANDMARKS:use_prev_landmarks"
+type: "HandLandmarkTrackingCpu"

@@ -1,0 +1,14 @@
+.vs/
+/bin/
+/MediaPipe2ManoRuntime/x64/
+/MediaPipe2ManoViewer/x64/
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
+*.pdb
+*.ilk
+*.exp
+*.obj
+*.tlog
+*.log

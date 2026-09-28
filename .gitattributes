@@ -1,0 +1,7 @@
+*.dll filter=lfs diff=lfs merge=lfs -text
+*.lib filter=lfs diff=lfs merge=lfs -text
+*.bin filter=lfs diff=lfs merge=lfs -text
+*.binarypb filter=lfs diff=lfs merge=lfs -text
+*.tflite filter=lfs diff=lfs merge=lfs -text
+*.ktx filter=lfs diff=lfs merge=lfs -text
+*.filamat filter=lfs diff=lfs merge=lfs -text
