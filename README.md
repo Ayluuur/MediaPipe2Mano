@@ -2,6 +2,10 @@
 
 项目使用 MediaPipe Hands 获取手部关键点，通过 MANO IK 生成手部网格和骨架，并提供双手跟踪、深度估计、捏合、小球与按钮交互。
 
+## 运行预览
+
+![MediaPipe2Mano 手部交互运行预览](Preview.png)
+
 ## 目录结构
 
 ```text
