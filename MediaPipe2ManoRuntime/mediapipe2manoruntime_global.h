@@ -1,0 +1,13 @@
+#pragma once
+
+#include <QtCore/qglobal.h>
+
+#ifndef BUILD_STATIC
+# if defined(MEDIAPIPE2MANORUNTIME_LIB)
+#  define MEDIAPIPE2MANORUNTIME_EXPORT Q_DECL_EXPORT
+# else
+#  define MEDIAPIPE2MANORUNTIME_EXPORT Q_DECL_IMPORT
+# endif
+#else
+# define MEDIAPIPE2MANORUNTIME_EXPORT
+#endif
