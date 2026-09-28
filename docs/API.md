@@ -1,6 +1,6 @@
 # 公共 C++ API
 
-公共 API 位于 `MediaPipe2ManoRuntime/include/MediaPipe2Mano/`，命名空间为 `m2m`。宿主程序链接 `MediaPipe2ManoRuntime.lib`，运行时加载 `MediaPipe2ManoRuntime.dll` 及构建目录中的依赖与资源。
+公共 API 位于 `MediaPipe2ManoRuntime/include/MediaPipe2Mano/`，命名空间为 `m2m`。
 
 ## 调用流程
 
@@ -77,7 +77,7 @@ const std::string& resourceRoot() const noexcept;
 RuntimeConfig loadRuntimeConfig(const std::string& filePath);
 ```
 
-该函数读取并校验 JSON。字段缺失、类型错误或取值越界时抛出 `std::runtime_error`。返回的强类型配置可在构造 Runtime 前修改。
+该函数读取并校验 JSON。返回的强类型配置可在构造 Runtime 前修改。
 
 | 成员 | JSON 来源 | 用途 |
 | --- | --- | --- |
@@ -131,7 +131,7 @@ struct Mesh {
 };
 ```
 
-顶点使用毫米单位。每连续三个索引组成一个三角形。
+顶点使用毫米单位。
 
 ### Skeleton
 

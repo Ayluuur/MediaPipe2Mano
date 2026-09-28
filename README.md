@@ -1,10 +1,12 @@
 # MediaPipe2Mano
 
-项目使用 MediaPipe Hands 获取手部关键点，通过 MANO IK 生成手部网格和骨架，并提供双手跟踪、深度估计、捏合、小球与按钮交互。
+项目使用 RGB 摄像头通过 MediaPipe Hands 获取手部关键点，通过 MANO + IK 生成手部网格和骨架，另包含深度估计与交互预览。
 
 ## 运行预览
 
 ![MediaPipe2Mano 手部交互运行预览](Preview.png)
+
+由于摄像头面向人物进行拍摄，因此进行镜像处理。主观视角中，恢复的手部与现实朝向一致。
 
 ## 目录结构
 
@@ -19,7 +21,7 @@ MediaPipe2Mano/
 └─ docs/                     开发说明与公共 API
 ```
 
-解决方案包含两个项目：
+包含两个项目：
 
 | 项目 | 输出 | 职责 |
 | --- | --- | --- |
@@ -34,8 +36,6 @@ MediaPipe2Mano/
 git clone https://github.com/Ayluuur/MediaPipe2Mano.git
 cd .\MediaPipe2Mano
 ```
-
-后续命令均在项目根目录执行。
 
 ### 环境要求
 
