@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Develop|x64"><Configuration>Develop</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3F8AB5C8-44F1-49C4-9C06-BF97CF0B2C97}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword><RootNamespace>MediaPipe2ManoViewer</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType><UseDebugLibraries>true</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Develop|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType><UseDebugLibraries>false</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType><UseDebugLibraries>false</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><WholeProgramOptimization>true</WholeProgramOptimization><CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir><IntDir>$(ProjectDir)x64\$(Configuration)\</IntDir>
+    <TargetName>MediaPipe2ManoViewer</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard><MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/utf-8 /bigobj /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>$(SolutionDir)MediaPipe2ManoRuntime\include;$(SolutionDir)MediaPipe2ManoRuntime\src;$(SolutionDir)ThirdParty\MediaPipe;$(SolutionDir)ThirdParty\Qt\include;$(SolutionDir)ThirdParty\Qt\include\QtCore;$(SolutionDir)ThirdParty\Qt\include\QtConcurrent;$(SolutionDir)ThirdParty\Qt\include\QtGui;$(SolutionDir)ThirdParty\Qt\include\QtWidgets;$(SolutionDir)ThirdParty\OpenCV\include;$(SolutionDir)ThirdParty\Open3D\include;$(SolutionDir)ThirdParty\Open3D\include\open3d\3rdparty;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NOMINMAX;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level4</WarningLevel><SDLCheck>true</SDLCheck><ConformanceMode>true</ConformanceMode>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem><GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\Qt\lib;$(SolutionDir)ThirdParty\OpenCV\x64\vc16\lib;$(SolutionDir)ThirdParty\Open3D\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <ClCompile><RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary></ClCompile>
+    <Link><AdditionalDependencies>Qt6Cored.lib;Qt6Concurrentd.lib;Qt6Guid.lib;Qt6Widgetsd.lib;Qt6EntryPointd.lib;opencv_world4120d.lib;Open3D.lib;tbb12.lib;%(AdditionalDependencies)</AdditionalDependencies></Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Develop'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <Optimization>Disabled</Optimization>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <PreprocessorDefinitions>DEVELOP_BUILD;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>Qt6Core.lib;Qt6Concurrent.lib;Qt6Gui.lib;Qt6Widgets.lib;Qt6EntryPoint.lib;opencv_world4120.lib;Open3D.lib;tbb12.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableIncrementalLinking>true</EnableIncrementalLinking>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <ClCompile><RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary><Optimization>MaxSpeed</Optimization><FunctionLevelLinking>true</FunctionLevelLinking><IntrinsicFunctions>true</IntrinsicFunctions></ClCompile>
+    <Link><AdditionalDependencies>Qt6Core.lib;Qt6Concurrent.lib;Qt6Gui.lib;Qt6Widgets.lib;Qt6EntryPoint.lib;opencv_world4120.lib;Open3D.lib;tbb12.lib;%(AdditionalDependencies)</AdditionalDependencies><EnableCOMDATFolding>true</EnableCOMDATFolding><OptimizeReferences>true</OptimizeReferences></Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="application.h" />
+    <ClCompile Include="application.cpp" /><ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MediaPipe2ManoRuntime\Runtime.vcxproj"><Project>{1C9E81BA-DE0B-4A8E-9616-DC3D8147644B}</Project></ProjectReference>
+  </ItemGroup>
+  <Target Name="DeployViewer" AfterTargets="Build">
+    <ItemGroup Condition="'$(Configuration)'=='Debug'">
+      <ViewerDll Include="$(SolutionDir)ThirdParty\Qt\bin\Qt6Cored.dll;$(SolutionDir)ThirdParty\Qt\bin\Qt6Concurrentd.dll;$(SolutionDir)ThirdParty\Qt\bin\Qt6Guid.dll;$(SolutionDir)ThirdParty\Qt\bin\Qt6Widgetsd.dll;$(SolutionDir)ThirdParty\OpenCV\x64\vc16\bin\opencv_world4120d.dll;$(SolutionDir)ThirdParty\OpenCV\x64\vc16\bin\opencv_world4120.dll" />
+      <PlatformPlugin Include="$(SolutionDir)ThirdParty\Qt\plugins\platforms\qwindowsd.dll" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(Configuration)'=='Release' Or '$(Configuration)'=='Develop'">
+      <ViewerDll Include="$(SolutionDir)ThirdParty\Qt\bin\Qt6Core.dll;$(SolutionDir)ThirdParty\Qt\bin\Qt6Concurrent.dll;$(SolutionDir)ThirdParty\Qt\bin\Qt6Gui.dll;$(SolutionDir)ThirdParty\Qt\bin\Qt6Widgets.dll;$(SolutionDir)ThirdParty\OpenCV\x64\vc16\bin\opencv_world4120.dll" />
+      <PlatformPlugin Include="$(SolutionDir)ThirdParty\Qt\plugins\platforms\qwindows.dll" />
+    </ItemGroup>
+    <ItemGroup>
+      <ViewerDll Include="$(SolutionDir)ThirdParty\OpenCV\x64\vc16\bin\opencv_videoio_ffmpeg4120_64.dll;$(SolutionDir)ThirdParty\Open3D\bin\Open3D.dll;$(SolutionDir)ThirdParty\Open3D\bin\tbb12.dll;$(SolutionDir)ThirdParty\Qt\bin\d3dcompiler_47.dll;$(SolutionDir)ThirdParty\Qt\bin\opengl32sw.dll;$(SolutionDir)ThirdParty\Runtime\*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ViewerDll)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PlatformPlugin)" DestinationFolder="$(OutDir)platforms" SkipUnchangedFiles="true" />
+  </Target>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
